@@ -40,9 +40,7 @@ def predict():
     final_output = numerical_transformer.inverse_transform(output)
     final_output = '{:.2f}'.format(final_output[0, 0])
 
-
     return render_template('index.html', result=final_output)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
