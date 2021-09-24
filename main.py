@@ -1,32 +1,48 @@
 from flask.templating import render_template
 import joblib
 import pandas as pd
-from flask import Flask
+from flask import Flask, request
 
 app = Flask(__name__)
+
 
 @app.route('/', methods=['GET'])
 def homepage():
     return render_template('index.html')
 
+
+@app.route('/predict', methods=['POST'])
 def predict():
 
-    data = pd.DataFrame([[0.04741, 	0.0 ,	11.93 ,	0.0 ,	0.573 ,	6.030 ,	80.8 ,	2.5050 ,	1.0 ,	273.0 ,	21.0 	,396.90 ,	7.88 ]], columns=['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX',
-        'PTRATIO', 'B', 'LSTAT'])
+    CRIM = float(request.form['CRIM'])
+    ZN = float(request.form['ZN'])
+    INDUS = float(request.form['INDUS'])
+    CHAS = float(request.form['CHAS'])
+    NOX = float(request.form['NOX'])
+    RM = float(request.form['RM'])
+    AGE = float(request.form['AGE'])
+    DIS = float(request.form['DIS'])
+    RAD = float(request.form['RAD'])
+    TAX = float(request.form['TAX'])
+    PTRATIO = float(request.form['PTRATIO'])
+    B = float(request.form['B'])
+    LSTAT = float(request.form['LSTAT'])
 
+    data = pd.DataFrame([[CRIM, ZN,	INDUS, CHAS, NOX, RM,	AGE, DIS, RAD, TAX,	PTRATIO, B, LSTAT]],
+                        columns=['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT'])
 
-    lin_reg = joblib.load('Linear-Regression-Model.pkl')
-    numerical_transformer = joblib.load('numerical_transformer.pkl')
-    column_transformer= joblib.load('column_transformer.pkl')
-
+    lin_reg = joblib.load('model/Linear-Regression-Model.pkl')
+    numerical_transformer = joblib.load('model/numerical_transformer.pkl')
+    column_transformer = joblib.load('model/column_transformer.pkl')
 
     prepared_data = column_transformer.transform(data)
     output = lin_reg.predict(prepared_data)
     final_output = numerical_transformer.inverse_transform(output)
+    final_output = '{:.2f}'.format(final_output[0, 0])
 
-    return '{:.2f}'.format(final_output[0, 0])
 
-print(predict())
+    return render_template('index.html', result=final_output)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
